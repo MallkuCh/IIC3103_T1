@@ -16,14 +16,17 @@ SPOTIFY_CLIENT_SECRET = os.getenv("SPOTIFY_CLIENT_SECRET")
 SPOTIFY_REDIRECT = os.getenv("SPOTIFY_REDIRECT")
 URL = f"https://api.telegram.org/bot{TOKEN}"
 
-def parse_response(response):
-    try:
-        if response.content and response.headers.get("content-type") == "application/json":
-            return response.json()
-        else:
-            return None
-    except Exception:
-        return None
+def help_command():
+    text = f"""Comandos disponibles:\n
+    /install - Iniciar Sesion en Spotify\n
+    /help - Mostrar esta ayuda\n
+    /search - Buscar canciones en Spotify\n
+    /play - Reproducir canción\n
+    /pause - Pausar canción\n
+    /next - Siguiente canción\n
+    /previous - Canción anterior\n"""
+    return text
+
 
 def current_song(chat_id: int):
     chat_id = str(chat_id)
@@ -48,7 +51,7 @@ def current_song(chat_id: int):
 
         return text
     else:
-        return "Primero inicia sesion en Spotify!"
+        return "Por favor primero inicia sesion en Spotify!"
     
 async def pause_song(chat_id: int):
     chat_id = str(chat_id)
@@ -68,7 +71,7 @@ async def pause_song(chat_id: int):
             text = f"Error"
         return text
     else:
-        return {"error": "Primero inicia sesion en Spotify!"}
+        return "Por favor primero inicia sesion en Spotify!"
     
 async def resume_song(chat_id: int):
     chat_id = str(chat_id)
@@ -101,7 +104,7 @@ async def resume_song(chat_id: int):
             return {"error": "No active device"}
         return text
     else:
-        return {"error": "Primero inicia sesion en Spotify!"}
+        return "Por favor primero inicia sesion en Spotify!"
 
 def next_song(chat_id: int):
     chat_id = str(chat_id)
@@ -117,7 +120,7 @@ def next_song(chat_id: int):
             text = "No se pudo reproducir la siguiente cancion!"
         return text
     else:
-        return {"error": "Primero inicia sesion en Spotify!"}
+        return "Por favor primero inicia sesion en Spotify!"
     
 def previous_song(chat_id: int):
     chat_id = str(chat_id)
@@ -132,7 +135,7 @@ def previous_song(chat_id: int):
             text = "No se pudo reproducir la cancion!"
         return text
     else:
-        return {"error": "Primero inicia sesion en Spotify!"}
+        return f"Por favor primero inicia sesion en Spotify!"
     
 def search_songs(chat_id, query):
     chat_id = str(chat_id)
@@ -161,7 +164,7 @@ def search_songs(chat_id, query):
                 dict_tracks[cancion] = track_id
             return mensaje, dict_tracks
     else: 
-        return {"error": "Primero inicia sesion en Spotify!"}, None
+        return f"Por favor primero inicia sesion en Spotify!", None
     
 def save_track_to_spotify(chat_id, track_id):
     chat_id = str(chat_id)
@@ -181,7 +184,7 @@ def save_track_to_spotify(chat_id, track_id):
         else:
             return f"Error"
     else:
-        return f"Primero inicia sesion en Spotify!con /install"
+        return f"Por favor primero inicia sesion en Spotify!"
     
 
 @router.get("/callback")

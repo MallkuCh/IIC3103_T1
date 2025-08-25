@@ -4,8 +4,8 @@ from fastapi import FastAPI, Request
 from fastapi import APIRouter
 import requests
 from urllib.parse import urlencode
-from .spotify import current_song, resume_song, pause_song, next_song, previous_song, search_songs, save_track_to_spotify
-from .storage import saved_idchats
+from .spotify import current_song, resume_song, pause_song, next_song, previous_song, search_songs, save_track_to_spotify, help_command
+from .storage import saved_idchats, saved_tokens
 
 load_dotenv()
 router = APIRouter(tags=["Telegram"])
@@ -28,7 +28,7 @@ async def webhook(request: Request):
 
         if texto.startswith("/"):
             if texto == "/help":
-                respuesta = "Comandos disponibles:\n/start - Iniciar bot\n/help - Mostrar comandos"
+                respuesta = help_command()
             elif texto == "/install":
                 scopes = "user-read-currently-playing user-read-playback-state user-modify-playback-state user-library-modify"
                 params = {
@@ -39,7 +39,7 @@ async def webhook(request: Request):
                     "scope": scopes
                 }
                 auth_url = f"https://accounts.spotify.com/authorize?{urlencode(params)}"
-                respuesta = f"Instala Spotify aquí:\n{auth_url}"
+                respuesta = f"Inicia Sesion de Spotify aquí:\n{auth_url}"
                 requests.post(f"{URL}/sendMessage", json={"chat_id": chat_id, "text": respuesta})
             elif texto == "/current":
                 respuesta = current_song(chat_id)
@@ -53,20 +53,23 @@ async def webhook(request: Request):
                 respuesta = previous_song(chat_id)
             elif texto.startswith("/search"):
                 query = texto.replace("/search", "").strip()
-                if query == "" or query == " ":
-                    respuesta = "Debes escribir algo, por ejemplo /search pop"
+                if chat_id in saved_tokens:
+                    if query == "" or query == " ":
+                        respuesta = "Debes escribir algo, por ejemplo /search pop"
+                    else:
+                        respuesta, tracks_ids = search_songs(chat_id, query)
+                        for mensaje in respuesta:
+                            resp_telegram = requests.post(f"{URL}/sendMessage", json={"chat_id": chat_id, "text": mensaje, "parse_mode": "Markdown"})
+                            response = resp_telegram.json()
+                            message_id = response["result"]["message_id"]
+                            try:
+                                saved_idchats[message_id] = tracks_ids[mensaje]
+                            except:
+                                print("me¿nsaje no encontrado")
+                        print(saved_idchats)
+                        return 0
                 else:
-                    respuesta, tracks_ids = search_songs(chat_id, query)
-                    for mensaje in respuesta:
-                        resp_telegram = requests.post(f"{URL}/sendMessage", json={"chat_id": chat_id, "text": mensaje, "parse_mode": "Markdown"})
-                        response = resp_telegram.json()
-                        message_id = response["result"]["message_id"]
-                        try:
-                            saved_idchats[message_id] = tracks_ids[mensaje]
-                        except:
-                            print("me¿nsaje no encontrado")
-                    print(saved_idchats)
-                    return 0
+                    respuesta = "Por favor primero inicia sesion en Spotify!"
             else:
                 respuesta = "Comando no reconocido."
             requests.post(f"{URL}/sendMessage", json={"chat_id": chat_id, "text": respuesta, "parse_mode": "Markdown"})
