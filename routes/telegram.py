@@ -53,7 +53,7 @@ async def webhook(request: Request):
                 respuesta = previous_song(chat_id)
             elif texto.startswith("/search"):
                 query = texto.replace("/search", "").strip()
-                if chat_id in saved_tokens:
+                if str(chat_id) in saved_tokens:
                     if query == "" or query == " ":
                         respuesta = "Debes escribir algo, por ejemplo /search pop"
                     else:
