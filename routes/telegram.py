@@ -4,7 +4,16 @@ from fastapi import FastAPI, Request
 from fastapi import APIRouter
 import requests
 from urllib.parse import urlencode
-from .spotify import current_song, resume_song, pause_song, next_song, previous_song, search_songs, save_track_to_spotify, help_command
+from utils.spotify_functions import (
+    current_song,
+    resume_song,
+    pause_song,
+    next_song,
+    previous_song,
+    search_songs,
+    save_track_to_spotify,
+    help_command,
+)
 from .storage import saved_idchats, saved_tokens
 
 load_dotenv()
@@ -20,7 +29,6 @@ URL = f"https://api.telegram.org/bot{TOKEN}"
 @router.post("/webhook")
 async def webhook(request: Request):
     data = await request.json()
-    print(data)
 
     if "message" in data:
         chat_id = data["message"]["chat"]["id"]
@@ -65,8 +73,7 @@ async def webhook(request: Request):
                             try:
                                 saved_idchats[message_id] = tracks_ids[mensaje]
                             except:
-                                print("me¿nsaje no encontrado")
-                        print(saved_idchats)
+                                print("mensaje no encontrado")
                         return 0
                 else:
                     respuesta = "Por favor primero inicia sesion en Spotify!"
@@ -77,7 +84,6 @@ async def webhook(request: Request):
             respuesta = f"Recibí tu mensaje: {texto}"
             requests.post(f"{URL}/sendMessage", json={"chat_id": chat_id, "text": respuesta, "parse_mode": "Markdown"})
     elif "message_reaction" in data:
-        print("reaccion!!!")
         chat_id = data["message_reaction"]["chat"]["id"]
         reaction_event = data["message_reaction"]
         message_id = reaction_event["message_id"]
